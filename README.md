@@ -46,5 +46,16 @@ Order lifecycle statuses:
 
 ## 🏗️ Architecture Overview
 
-The application follows a standard layered architecture:
+- The application follows a standard layered architecture:
+
+- Controller Layer
+Handles HTTP requests and responses (REST APIs)
+
+- Service Layer
+Contains business logic and order lifecycle handling
+
+- Repository Layer
+Interacts with the database using Spring Data JPA
+
+- This separation of concerns improves maintainability, testability, and scalability.
 
