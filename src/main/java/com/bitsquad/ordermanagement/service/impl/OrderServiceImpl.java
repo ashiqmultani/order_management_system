@@ -22,7 +22,6 @@ public class OrderServiceImpl implements OrderService {
     public Order createOrder(Long userId) {
         Order order = new Order();
         order.setUserId(userId);
-        // status is set automatically to CREATED in @PrePersist
         return orderRepository.save(order);
     }
 
