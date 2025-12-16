@@ -1,10 +1,15 @@
 package com.bitsquad.ordermanagement.controller;
 
 import com.bitsquad.ordermanagement.dto.CreateOrderRequest;
+import com.bitsquad.ordermanagement.dto.OrderResponse;
 import com.bitsquad.ordermanagement.dto.UpdateOrderStatusRequest;
 import com.bitsquad.ordermanagement.entity.Order;
+import com.bitsquad.ordermanagement.entity.OrderStatus;
 import com.bitsquad.ordermanagement.service.OrderService;
+import com.bitsquad.ordermanagement.service.impl.OrderServiceImpl;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,55 +17,43 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/orders")
+@Slf4j
+@RequiredArgsConstructor
 public class OrderController {
+    private final OrderServiceImpl orderService;
 
-    private final OrderService orderService;
-
-    public OrderController(OrderService orderService) {
-        this.orderService = orderService;
+    @PostMapping
+    public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody CreateOrderRequest request) {
+        OrderResponse response = orderService.createOrder(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // -------------------------
-    // Create a new order
-    // -------------------------
-    @PostMapping("/orders")
-    public ResponseEntity<Order> createOrder(
-            @Valid @RequestBody CreateOrderRequest request) {
-
-        Order order = orderService.createOrder(request.getUserId());
-        return new ResponseEntity<>(order, HttpStatus.CREATED);
+    @GetMapping("/{orderId}")
+    public ResponseEntity<OrderResponse> getOrder(@PathVariable Long orderId) {
+        OrderResponse response = orderService.getOrderById(orderId);
+        return ResponseEntity.ok(response);
     }
 
-    // -------------------------
-    // Get order by ID
-    // -------------------------
-    @GetMapping("/orders/{orderId}")
-    public ResponseEntity<Order> getOrderById(@PathVariable Long orderId) {
-        Order order = orderService.getOrderById(orderId);
-        return ResponseEntity.ok(order);
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<OrderResponse>> getOrdersByUser(@PathVariable Long userId) {
+        List<OrderResponse> responses = orderService.getOrdersByUserId(userId);
+        return ResponseEntity.ok(responses);
     }
 
-    // -------------------------
-    // Get all orders for a user
-    // -------------------------
-    @GetMapping("/users/{userId}/orders")
-    public ResponseEntity<List<Order>> getOrdersByUserId(@PathVariable Long userId) {
-        List<Order> orders = orderService.getOrdersByUserId(userId);
-        return ResponseEntity.ok(orders);
+    @GetMapping("/user/{userId}/status/{status}")
+    public ResponseEntity<List<OrderResponse>> getOrdersByUserAndStatus(
+            @PathVariable Long userId,
+            @PathVariable OrderStatus status) {
+        List<OrderResponse> responses = orderService.getOrdersByUserAndStatus(userId, status);
+        return ResponseEntity.ok(responses);
     }
 
-    // -------------------------
-    // Update order status
-    // -------------------------
-    @PutMapping("/orders/{orderId}/status")
-    public ResponseEntity<Order> updateOrderStatus(
+    @PatchMapping("/{orderId}/status")
+    public ResponseEntity<OrderResponse> updateOrderStatus(
             @PathVariable Long orderId,
-            @Valid @RequestBody UpdateOrderStatusRequest request) {
-
-        Order updatedOrder =
-                orderService.updateOrderStatus(orderId, request.getStatus());
-
-        return ResponseEntity.ok(updatedOrder);
+            @RequestParam OrderStatus status) {
+        OrderResponse response = orderService.updateOrderStatus(orderId, status);
+        return ResponseEntity.ok(response);
     }
 }
