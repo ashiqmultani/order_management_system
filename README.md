@@ -59,3 +59,41 @@ Interacts with the database using Spring Data JPA
 
 - This separation of concerns improves maintainability, testability, and scalability.
 
+🗄️ Database Strategy
+
+- H2 (in-memory database) is used as the default database for local development and evaluation.
+
+- MySQL is used for production deployment (Railway).
+
+- Database credentials are never committed to the repository.
+
+- MySQL credentials are injected using environment variables in production.
+
+- This approach allows the application to run immediately after cloning, while remaining secure.
+
+## Running the Application Locally (H2)
+
+- Prerequisites
+
+  Java 17+
+
+  Maven
+
+  Steps
+
+## Clone the repository:
+
+- git clone <repository-url>
+- cd order-management-system
+
+
+## Run the application:
+
+- mvn spring-boot:run
+
+
+## The application will start at:
+
+- http://localhost:8080
+
+
