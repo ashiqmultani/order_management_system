@@ -7,6 +7,7 @@ import com.bitsquad.ordermanagement.dto.OrderResponse;
 import com.bitsquad.ordermanagement.entity.Order;
 import com.bitsquad.ordermanagement.entity.OrderItem;
 import com.bitsquad.ordermanagement.entity.OrderStatus;
+import com.bitsquad.ordermanagement.exception.InvalidOrderStatusTransitionException;
 import com.bitsquad.ordermanagement.exception.OrderNotFoundException;
 import com.bitsquad.ordermanagement.exception.ResourceNotFoundException;
 import com.bitsquad.ordermanagement.repository.OrderRepository;
@@ -21,6 +22,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.bitsquad.ordermanagement.entity.OrderStatus.*;
 
 @Service
 @Slf4j
@@ -79,14 +82,20 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
     }
 
+    @Override
     @Transactional
     public OrderResponse updateOrderStatus(Long orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with ID: " + orderId));
 
+        OrderStatus currentStatus = order.getStatus();
+
+        // ✓ Validate transition before updating
+        validateStatusTransition(orderId, currentStatus, newStatus);
+
+        // ✓ Only update if transition is valid
         order.setStatus(newStatus);
         Order updatedOrder = orderRepository.save(order);
-        log.info("Order {} status updated to: {}", orderId, newStatus);
 
         return mapToResponse(updatedOrder);
     }
@@ -120,4 +129,41 @@ public class OrderServiceImpl implements OrderService {
 
         return response;
     }
+    private void validateStatusTransition(Long orderId, OrderStatus currentStatus, OrderStatus newStatus) {
+
+        // Idempotent: Same status is allowed
+        if (currentStatus == newStatus) {
+            return;
+        }
+
+        switch (currentStatus) {
+            case CREATED:
+                if (newStatus == PROCESSING || newStatus == COMPLETED || newStatus == CANCELLED) {
+                    return;  // ✓ Valid
+                }
+                break;
+
+            case PROCESSING:
+                if (newStatus == COMPLETED || newStatus == CANCELLED) {
+                    return;  // ✓ Valid
+                }
+                break;
+
+            case COMPLETED:
+                throw new InvalidOrderStatusTransitionException(
+                        "Invalid status transition: " + currentStatus + " → " + newStatus
+                );
+
+            case CANCELLED:
+                throw new InvalidOrderStatusTransitionException(
+                        "Invalid status transition: " + currentStatus + " → " + newStatus
+                );
+        }
+
+        // Invalid transition
+        throw new InvalidOrderStatusTransitionException(
+                "Invalid status transition: " + currentStatus + " → " + newStatus
+        );
+    }
+
 }
