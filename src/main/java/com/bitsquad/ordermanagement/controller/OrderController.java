@@ -2,6 +2,7 @@ package com.bitsquad.ordermanagement.controller;
 
 import com.bitsquad.ordermanagement.dto.CreateOrderRequest;
 import com.bitsquad.ordermanagement.dto.OrderResponse;
+import com.bitsquad.ordermanagement.dto.OrderSummaryResponse;
 import com.bitsquad.ordermanagement.dto.UpdateOrderStatusRequest;
 import com.bitsquad.ordermanagement.entity.Order;
 import com.bitsquad.ordermanagement.entity.OrderStatus;
@@ -55,5 +56,12 @@ public class OrderController {
             @RequestParam OrderStatus status) {
         OrderResponse response = orderService.updateOrderStatus(orderId, status);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/user/{userId}/summary")
+    public ResponseEntity<OrderSummaryResponse> getUserOrderSummary(
+            @PathVariable Long userId
+    ) {
+        return ResponseEntity.ok(orderService.getOrderSummaryByUser(userId));
     }
 }
