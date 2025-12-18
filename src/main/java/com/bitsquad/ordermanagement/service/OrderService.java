@@ -2,6 +2,7 @@ package com.bitsquad.ordermanagement.service;
 
 import com.bitsquad.ordermanagement.dto.CreateOrderRequest;
 import com.bitsquad.ordermanagement.dto.OrderResponse;
+import com.bitsquad.ordermanagement.dto.OrderSummaryResponse;
 import com.bitsquad.ordermanagement.entity.Order;
 import com.bitsquad.ordermanagement.entity.OrderStatus;
 
@@ -13,4 +14,5 @@ public interface OrderService {
     List<OrderResponse> getOrdersByUserId(Long userId);
     OrderResponse updateOrderStatus(Long orderId, OrderStatus newStatus);
     List<OrderResponse> getOrdersByUserAndStatus(Long userId, OrderStatus status);
+    OrderSummaryResponse getOrderSummaryByUser(Long userId);
 }

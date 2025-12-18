@@ -1,9 +1,6 @@
 package com.bitsquad.ordermanagement.service.impl;
 
-import com.bitsquad.ordermanagement.dto.CreateOrderRequest;
-import com.bitsquad.ordermanagement.dto.OrderItemRequest;
-import com.bitsquad.ordermanagement.dto.OrderItemResponse;
-import com.bitsquad.ordermanagement.dto.OrderResponse;
+import com.bitsquad.ordermanagement.dto.*;
 import com.bitsquad.ordermanagement.entity.Order;
 import com.bitsquad.ordermanagement.entity.OrderItem;
 import com.bitsquad.ordermanagement.entity.OrderStatus;
@@ -20,7 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.bitsquad.ordermanagement.entity.OrderStatus.*;
@@ -106,6 +105,35 @@ public class OrderServiceImpl implements OrderService {
         return orders.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public OrderSummaryResponse getOrderSummaryByUser(Long userId) {
+
+
+        List<Object[]> results = orderRepository.countOrdersByStatus(userId);
+
+        Map<OrderStatus, Long> statusCountMap = new EnumMap<>(OrderStatus.class);
+        for (OrderStatus status : OrderStatus.values()) {
+            statusCountMap.put(status, 0L);
+        }
+
+        for (Object[] row : results) {
+            OrderStatus status = (OrderStatus) row[0];
+            Long count = (Long) row[1];
+            statusCountMap.put(status, count);
+        }
+
+        long totalOrders = orderRepository.countByUserId(userId);
+
+        return OrderSummaryResponse.builder()
+                .userId(userId)
+                .totalOrders(totalOrders)
+                .created(statusCountMap.get(OrderStatus.CREATED))
+                .processing(statusCountMap.get(OrderStatus.PROCESSING))
+                .completed(statusCountMap.get(OrderStatus.COMPLETED))
+                .cancelled(statusCountMap.get(OrderStatus.CANCELLED))
+                .build();
     }
 
     private OrderResponse mapToResponse(Order order) {
